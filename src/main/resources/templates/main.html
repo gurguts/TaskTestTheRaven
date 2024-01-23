@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+</head>
+<body>
+<link rel="stylesheet" type="text/css" href="/css/style.css">
+
+<h1>Create Customer</h1>
+<form onsubmit="preventDefault(); createCustomer();">
+    <label for="fullName">Full Name:</label><br>
+    <input type="text" id="fullName" name="fullName"><br>
+    <label for="email">Email:</label><br>
+    <input type="email" id="email" name="email"><br>
+    <label for="phone">Phone:</label><br>
+    <input type="tel" id="phone" name="phone"><br>
+    <input type="submit" value="Create">
+</form>
+
+<h1>Read All Customers</h1>
+<button onclick="readAllCustomers()">Read all customers</button>
+<table id="customersTable">
+    <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+    </tr>
+</table>
+
+<h1>Read Customer</h1>
+<input type="text" id="customerId" placeholder="Enter customer ID" oninput="checkInput()">
+<button id="readButton" onclick="readCustomer()" disabled>Read customer</button>
+<pre id="customerInfo"></pre>
+
+<h1>Update Customer</h1>
+<input type="text" id="customerIdUpdate" placeholder="Enter customer ID">
+<input type="text" id="newId" placeholder="Enter new ID">
+<input type="text" id="fullNameUpdate" placeholder="Enter full name">
+<input type="text" id="phoneUpdate" placeholder="Enter phone">
+<button onclick="updateCustomer()">Update</button>
+<pre id="customerInfoUpdate"></pre>
+
+<h1>Delete Customer</h1>
+<input type="text" id="customerIdDelete" placeholder="Enter customer ID" oninput="checkInputDelete()">
+<button id="deleteButton" onclick="deleteCustomer()" disabled>Delete customer</button>
+<pre id="customerInfoDelete"></pre>
+
+<script src="/script/deleteCustomer.js"></script>
+<script src="/script/updateCustomer.js"></script>
+<script src="/script/readCustomer.js"></script>
+<script src="/script/readAllCustomers.js"></script>
+<script src="/script/createCustomer.js"></script>
+</body>
+</html>
