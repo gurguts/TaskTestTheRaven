@@ -30,9 +30,9 @@ public class CustomerValidatorTest {
         String fullName = "Test User";
         String phone = "+1234567890";
 
-        assertDoesNotThrow(() -> customerValidator.validateWithoutEmail(fullName, phone));
+        assertDoesNotThrow(() -> customerValidator.validateUpdateData(3L,3L, fullName, phone));
 
-        assertThrows(IllegalArgumentException.class, () -> customerValidator.validateWithoutEmail(null, phone));
-        assertThrows(IllegalArgumentException.class, () -> customerValidator.validateWithoutEmail(fullName, null));
+        assertThrows(IllegalArgumentException.class, () -> customerValidator.validateUpdateData(3L,3L,null, phone));
+        assertThrows(IllegalArgumentException.class, () -> customerValidator.validateUpdateData(3L,3L,fullName, null));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.tasktesttheraven.services;
 
+import com.example.tasktesttheraven.exceptions.CustomerException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,50 +17,53 @@ public class CustomerValidator {
 
     private void validatePhone(String phone) {
         if (phone == null) {
-            throw new IllegalArgumentException("Phone cannot be null");
+            throw new CustomerException("Phone cannot be null");
         }
         if (phone.length() < 6) {
-            throw new IllegalArgumentException("Phone must be between 6 and 14 characters long");
+            throw new CustomerException("Phone must be between 6 and 14 characters long");
         }
         if (phone.length() > 14) {
-            throw new IllegalArgumentException("Phone must be between 6 and 14 characters long");
+            throw new CustomerException("Phone must be between 6 and 14 characters long");
         }
         if (!phone.startsWith("+")) {
-            throw new IllegalArgumentException("Phone must start with \"+\"");
+            throw new CustomerException("Phone must start with \"+\"");
         }
         if (!phone.matches("\\+\\d+")) {
-            throw new IllegalArgumentException("Phone must contain only digits");
+            throw new CustomerException("Phone must contain only digits");
         }
     }
 
     private void validateEmail(String email) {
         if (email == null) {
-            throw new IllegalArgumentException("Email cannot be null");
+            throw new CustomerException("Email cannot be null");
         }
         if (email.length() < 2) {
-            throw new IllegalArgumentException("Email must be between 2 and 100 characters long");
+            throw new CustomerException("Email must be between 2 and 100 characters long");
         }
         if (email.length() > 100) {
-            throw new IllegalArgumentException("Email must be between 2 and 100 characters long");
+            throw new CustomerException("Email must be between 2 and 100 characters long");
         }
         if (!email.contains("@")) {
-            throw new IllegalArgumentException("Email must contain exactly one @");
+            throw new CustomerException("Email must contain exactly one @");
         }
     }
 
     private void validateFullName(String fullName) {
         if (fullName == null) {
-            throw new IllegalArgumentException("Full name cannot be null");
+            throw new CustomerException("Full name cannot be null");
         }
         if (fullName.length() < 2) {
-            throw new IllegalArgumentException("Full name must be between 2 and 50 characters long");
+            throw new CustomerException("Full name must be between 2 and 50 characters long");
         }
         if (fullName.length() > 50) {
-            throw new IllegalArgumentException("Full name must be between 2 and 50 characters long");
+            throw new CustomerException("Full name must be between 2 and 50 characters long");
         }
     }
 
-    public void validateWithoutEmail(String fullName, String phone) {
+    public void validateUpdateData(Long idNew, Long idOld, String fullName, String phone) {
+        if (idNew.equals(idOld)){
+            throw new CustomerException("Entities' IDs do not match");
+        }
         validateFullName(fullName);
         validatePhone(phone);
     }

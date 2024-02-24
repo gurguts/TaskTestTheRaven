@@ -2,6 +2,7 @@ package com.example.tasktesttheraven.restControllers;
 
 import com.example.tasktesttheraven.dto.CustomerDTO;
 import com.example.tasktesttheraven.models.Customer;
+import com.example.tasktesttheraven.models.CustomerEntity;
 import com.example.tasktesttheraven.services.CustomerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,7 +38,11 @@ public class CustomerRestControllerTest {
         customerDTO.setPhone("+123456789");
         Customer customer = new Customer(1L, "Test", "test@test.com", "+123456789");
 
-        when(customerService.createCustomer(customerDTO.getFullName(), customerDTO.getEmail(), customerDTO.getPhone()))
+        CustomerEntity customerEntity = new CustomerEntity();
+        customerEntity.setFullName(customerDTO.getFullName());
+        customerEntity.setEmail(customerDTO.getEmail());
+        customerEntity.setPhone(customerDTO.getPhone());
+        when(customerService.createCustomer(customerEntity))
                 .thenReturn(customer);
 
         mockMvc.perform(post("/api/v1/customers")
@@ -63,7 +69,7 @@ public class CustomerRestControllerTest {
         Long id = 1L;
         Customer customer = new Customer(id, "Test", "test@test.com", "+123456789");
 
-        when(customerService.readCustomer(id)).thenReturn(customer);
+        when(customerService.readCustomer(id)).thenReturn(Optional.of(customer));
 
         mockMvc.perform(get("/api/v1/customers/" + id)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -79,7 +85,7 @@ public class CustomerRestControllerTest {
         customerDTO.setPhone("+123456789");
         Customer customer = new Customer(id, "Test", "test@test.com", "+123456789");
 
-        when(customerService.updateCustomer(id, customerDTO.getId(), customerDTO.getFullName(), customerDTO.getPhone()))
+        when(customerService.updateCustomer(id, customerDTO.getFullName(), customerDTO.getPhone()))
                 .thenReturn(customer);
 
         mockMvc.perform(put("/api/v1/customers/" + id)

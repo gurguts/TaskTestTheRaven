@@ -8,7 +8,7 @@
 <link rel="stylesheet" type="text/css" href="/css/style.css">
 
 <h1>Create Customer</h1>
-<form onsubmit="preventDefault(); createCustomer();">
+<form onsubmit="event.preventDefault(); createCustomer();">
     <label for="fullName">Full Name:</label><br>
     <input type="text" id="fullName" name="fullName"><br>
     <label for="email">Email:</label><br>
@@ -17,6 +17,7 @@
     <input type="tel" id="phone" name="phone"><br>
     <input type="submit" value="Create">
 </form>
+
 
 <h1>Read All Customers</h1>
 <button onclick="readAllCustomers()">Read all customers</button>

@@ -1,8 +1,13 @@
 package com.example.tasktesttheraven.services;
 
+import com.example.tasktesttheraven.exceptions.CustomerException;
+import com.example.tasktesttheraven.interfaces.ICustomerService;
+import com.example.tasktesttheraven.mapper.CustomerMapper;
 import com.example.tasktesttheraven.models.Customer;
 import com.example.tasktesttheraven.models.CustomerEntity;
 import com.example.tasktesttheraven.repositories.CustomerRepositories;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,82 +15,78 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+
 /**
  * CustomerService class manages customer operations with validation.
  * It creates, reads, updates, and deletes customer data using a repository and a validator.
  * The methods handle input validation, entity conversion, and interaction with the repository.
  */
 @Service
-public class CustomerService {
-    private final CustomerRepositories customerRepositories;
-    private final CustomerValidator customerValidator;
+public class CustomerService implements ICustomerService {
+    private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
 
-    public CustomerService(CustomerRepositories customerRepositories, CustomerValidator customerValidator) {
+    private final CustomerRepositories customerRepositories;
+    private final CustomerMapper customerMapper;
+
+    public CustomerService(CustomerRepositories customerRepositories, CustomerMapper customerMapper) {
         this.customerRepositories = customerRepositories;
-        this.customerValidator = customerValidator;
+        this.customerMapper = customerMapper;
     }
 
-    public Customer createCustomer(String fullName, String email, String phone) {
-        customerValidator.validate(fullName, email, phone);
+    public Customer createCustomer(CustomerEntity customerEntity) {
+        String email = customerEntity.getEmail();
+        logger.debug("Creating customer with email: {}", email);
+        Optional<CustomerEntity> existingCustomers = customerRepositories.findByEmail(email);
 
-        CustomerEntity customerEntity = new CustomerEntity();
-        customerEntity.setFullName(fullName);
-        customerEntity.setEmail(email);
-        customerEntity.setPhone(phone);
-        customerEntity.setCreated(System.currentTimeMillis());
-        customerEntity.setUpdated(null);
-        customerEntity.setIsActive(true);
+        if (existingCustomers.isPresent()) {
+            logger.error("Customer with email {} already exists", email);
+            throw new RuntimeException("Customer with email " + email + " already exists");
+        }
 
         customerRepositories.save(customerEntity);
+        logger.info("Customer with email {} created successfully", email);
 
-        return convertCustomer(customerEntity);
+        return customerMapper.customerEntityToCustomer(customerEntity);
     }
 
     public List<Customer> readAllCustomers() {
+        logger.debug("Reading all active customers");
         Iterable<CustomerEntity> customersEntity = customerRepositories.findByIsActiveTrue();
         return StreamSupport.stream(customersEntity.spliterator(), false)
-                .map(this::convertCustomer)
+                .map(customerMapper::customerEntityToCustomer)
                 .collect(Collectors.toList());
     }
 
-    public Customer readCustomer(Long id) {
+    public Optional<Customer> readCustomer(Long id) {
+        logger.debug("Reading customer with id: {}", id);
         Optional<CustomerEntity> customerEntityOptional = customerRepositories.findById(id);
         if (customerEntityOptional.isEmpty() || !customerEntityOptional.get().getIsActive()) {
-            return null;
+            logger.warn("No customer found or inactive with id: {}", id);
+            return Optional.empty();
         }
-        CustomerEntity customerEntity = customerEntityOptional.get();
-        return convertCustomer(customerEntity);
+        logger.info("Active customer found with id: {}", id);
+        return Optional.of(customerMapper.customerEntityToCustomer(customerEntityOptional.get()));
     }
 
-    public Customer updateCustomer(Long idOld, Long idNew, String fullName, String phone) {
-        customerValidator.validateWithoutEmail(fullName, phone);
-
-        Optional<CustomerEntity> customerEntityOptional = customerRepositories.findById(idOld);
+    public Customer updateCustomer(Long id, String fullName, String phone) {
+        logger.debug("Updating customer with id: {}", id);
+        Optional<CustomerEntity> customerEntityOptional = customerRepositories.findById(id);
         if (customerEntityOptional.isEmpty()) {
-            return null;
+            logger.error("Customer with id {} not found", id);
+            throw new CustomerException("Customer with id " + id + " not found");
         }
-        customerRepositories.deleteById(idOld);
         CustomerEntity customerEntity = customerEntityOptional.get();
-        customerEntity.setId(idNew);
         customerEntity.setFullName(fullName);
         customerEntity.setPhone(phone);
+        customerEntity.setUpdated(System.currentTimeMillis());
+        logger.info("Customer with id {} updated successfully", id);
         customerEntity = customerRepositories.save(customerEntity);
-        return convertCustomer(customerEntity);
+        return customerMapper.customerEntityToCustomer(customerEntity);
     }
 
     public void deleteCustomer(Long id) {
-        Optional<CustomerEntity> customerEntityOptional = customerRepositories.findById(id);
-        if (customerEntityOptional.isPresent()) {
-            CustomerEntity customerEntity = customerEntityOptional.get();
-            customerEntity.setIsActive(false);
-            customerRepositories.save(customerEntity);
-        }
-    }
-
-    private Customer convertCustomer(CustomerEntity customerEntity) {
-        return new Customer(customerEntity.getId(),
-                customerEntity.getFullName(),
-                customerEntity.getEmail(),
-                customerEntity.getPhone());
+        logger.debug("Deactivating customer with id: {}", id);
+        customerRepositories.deactivateCustomer(id);
+        logger.info("Customer with id {} deactivated successfully", id);
     }
 }

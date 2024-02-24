@@ -36,7 +36,11 @@ public class CustomerServiceTest {
         String email = "testuser@example.com";
         String phone = "1234567890";
 
-        customerService.createCustomer(fullName, email, phone);
+        CustomerEntity customerEntity = new CustomerEntity();
+        customerEntity.setFullName(fullName);
+        customerEntity.setEmail(email);
+        customerEntity.setPhone(phone);
+        customerService.createCustomer(customerEntity);
 
         verify(customerValidator, times(1)).validate(fullName, email, phone);
         verify(customerRepositories, times(1)).save(any(CustomerEntity.class));
@@ -82,7 +86,7 @@ public class CustomerServiceTest {
 
         when(customerRepositories.findById(id)).thenReturn(Optional.of(customerEntity));
 
-        Customer customer = customerService.readCustomer(id);
+        Customer customer = customerService.readCustomer(id).get();
 
         verify(customerRepositories, times(1)).findById(id);
         assertEquals(customerEntity.getFullName(), customer.getFullName());
@@ -96,7 +100,7 @@ public class CustomerServiceTest {
 
         when(customerRepositories.findById(id)).thenReturn(Optional.empty());
 
-        Customer customer = customerService.readCustomer(id);
+        Optional<Customer> customer = customerService.readCustomer(id);
 
         verify(customerRepositories, times(1)).findById(id);
         assertNull(customer);
@@ -116,7 +120,7 @@ public class CustomerServiceTest {
 
         when(customerRepositories.findById(id)).thenReturn(Optional.of(customerEntity));
 
-        Customer customer = customerService.readCustomer(id);
+        Optional<Customer> customer = customerService.readCustomer(id);
 
         verify(customerRepositories, times(1)).findById(id);
         assertNull(customer);
@@ -124,8 +128,7 @@ public class CustomerServiceTest {
 
     @Test
     public void testUpdateCustomer() {
-        Long idOld = 1L;
-        Long idNew = 2L;
+        Long id = 1L;
         String fullName = "Test User Updated";
         String phone = "0987654321";
 
@@ -137,16 +140,16 @@ public class CustomerServiceTest {
         customerEntity.setUpdated(null);
         customerEntity.setIsActive(true);
 
-        when(customerRepositories.findById(idOld)).thenReturn(Optional.of(customerEntity));
+        when(customerRepositories.findById(id)).thenReturn(Optional.of(customerEntity));
         when(customerRepositories.save(any(CustomerEntity.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Customer customer = customerService.updateCustomer(idOld, idNew, fullName, phone);
+        Customer customer = customerService.updateCustomer(id, fullName, phone);
 
-        verify(customerValidator, times(1)).validateWithoutEmail(fullName, phone);
-        verify(customerRepositories, times(1)).findById(idOld);
-        verify(customerRepositories, times(1)).deleteById(idOld);
+        verify(customerValidator, times(1)).validateUpdateData(3L,3L,fullName, phone);
+        verify(customerRepositories, times(1)).findById(id);
+        verify(customerRepositories, times(1)).deleteById(id);
         verify(customerRepositories, times(1)).save(any(CustomerEntity.class));
-        assertEquals(idNew, customer.getId());
+        assertEquals(id, customer.getId());
         assertEquals(fullName, customer.getFullName());
         assertEquals(phone, customer.getPhone());
     }
@@ -154,15 +157,14 @@ public class CustomerServiceTest {
     @Test
     public void testUpdateCustomerNotFound() {
         Long idOld = 1L;
-        Long idNew = 2L;
         String fullName = "Test User Updated";
         String phone = "0987654321";
 
         when(customerRepositories.findById(idOld)).thenReturn(Optional.empty());
 
-        Customer customer = customerService.updateCustomer(idOld, idNew, fullName, phone);
+        Customer customer = customerService.updateCustomer(idOld, fullName, phone);
 
-        verify(customerValidator, times(1)).validateWithoutEmail(fullName, phone);
+        verify(customerValidator, times(1)).validateUpdateData(3L,3L,fullName, phone);
         verify(customerRepositories, times(1)).findById(idOld);
         assertNull(customer);
     }
